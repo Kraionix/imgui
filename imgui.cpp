@@ -1943,28 +1943,21 @@ ImVec2 ImTriangleClosestPoint(const ImVec2& a, const ImVec2& b, const ImVec2& c,
 // [SECTION] MISC HELPERS/UTILITIES (String, Format, Hash functions)
 //-----------------------------------------------------------------------------
 
-#if !(defined(IMGUI_ENABLE_SSE_IMMEMCHR) || defined(IMGUI_ENABLE_AVX_IMMEMCHR) || defined(IMGUI_ENABLE_AVX2_IMMEMCHR))
+#if defined IMGUI_ENABLE_AVX2_IMMEMCHR
 const void* ImMemchr(const void* buf, int val, size_t count)
 {
-    return memchr(buf, val, count);
-}
-#endif
-
-#ifdef IMGUI_ENABLE_SSE_IMMEMCHR
-const void* ImMemchr(const void* buf, int val, size_t count)
-{
-    static const size_t SIMD_LENGTH = 16;
+    static const size_t SIMD_LENGTH = 32;
 
     const char* str = (const char*)buf;
     const char ch = (char)(val);
     const size_t aligned_length = count - (count % SIMD_LENGTH);
-    __m128i target = _mm_set1_epi8(ch);
+    __m256i target = _mm256_set1_epi8(ch);
 
     size_t i = 0;
     for (; i < aligned_length; i += SIMD_LENGTH)
     {
-        __m128i chunk = _mm_loadu_si128((const __m128i*)(str + i));
-        uint16_t cmp = _mm_cmpeq_epi8_mask(chunk, target);
+        __m256i chunk = _mm256_loadu_si256((const __m256i*)(str + i));
+        uint32_t cmp = _mm256_cmpeq_epi8_mask(chunk, target);
 
         if (cmp != 0)
         {
@@ -1978,13 +1971,11 @@ const void* ImMemchr(const void* buf, int val, size_t count)
     for (; i < count; i++)
     {
         if (str[i] == ch)
-            return (const void*)(str + i);
+            return (const char*)(str + i);
     }
     return nullptr;
 }
-#endif // IMGUI_ENABLE_SSE_IMMEMCHR
-
-#ifdef IMGUI_ENABLE_AVX_IMMEMCHR
+#elif defined IMGUI_ENABLE_AVX_IMMEMCHR
 const void* ImMemchr(const void* buf, int val, size_t count)
 {
     static const size_t SIMD_LENGTH = 32;
@@ -2017,23 +2008,21 @@ const void* ImMemchr(const void* buf, int val, size_t count)
     }
     return nullptr;
 }
-#endif // IMGUI_ENABLE_AVX_IMMEMCHR
-
-#ifdef IMGUI_ENABLE_AVX2_IMMEMCHR
+#elif defined IMGUI_ENABLE_SSE_IMMEMCHR
 const void* ImMemchr(const void* buf, int val, size_t count)
 {
-    static const size_t SIMD_LENGTH = 32;
+    static const size_t SIMD_LENGTH = 16;
 
     const char* str = (const char*)buf;
     const char ch = (char)(val);
     const size_t aligned_length = count - (count % SIMD_LENGTH);
-    __m256i target = _mm256_set1_epi8(ch);
+    __m128i target = _mm_set1_epi8(ch);
 
     size_t i = 0;
     for (; i < aligned_length; i += SIMD_LENGTH)
     {
-        __m256i chunk = _mm256_loadu_si256((const __m256i*)(str + i));
-        uint32_t cmp = _mm256_cmpeq_epi8_mask(chunk, target);
+        __m128i chunk = _mm_loadu_si128((const __m128i*)(str + i));
+        uint16_t cmp = _mm_cmpeq_epi8_mask(chunk, target);
 
         if (cmp != 0)
         {
@@ -2047,11 +2036,16 @@ const void* ImMemchr(const void* buf, int val, size_t count)
     for (; i < count; i++)
     {
         if (str[i] == ch)
-            return (const char*)(str + i);
+            return (const void*)(str + i);
     }
     return nullptr;
 }
-#endif // IMGUI_ENABLE_AVX_IMMEMCHR
+#else
+const void* ImMemchr(const void* buf, int val, size_t count)
+{
+    return memchr(buf, val, count);
+}
+#endif
 
 // Consider using _stricmp/_strnicmp under Windows or strcasecmp/strncasecmp. We don't actually use either ImStricmp/ImStrnicmp in the codebase any more.
 int ImStricmp(const char* str1, const char* str2)

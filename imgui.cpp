@@ -1957,42 +1957,9 @@ const void* ImMemchr(const void* buf, int val, size_t count)
     for (; i < aligned_length; i += SIMD_LENGTH)
     {
         __m256i chunk = _mm256_loadu_si256((const __m256i*)(str + i));
-        uint32_t cmp = _mm256_cmpeq_epi8_mask(chunk, target);
+        int mask = _mm256_movemask_epi8(_mm256_cmpeq_epi8(chunk, target));
 
-        if (cmp != 0)
-        {
-            for (size_t j = 0; j < SIMD_LENGTH && i + j < aligned_length; ++j)
-            {
-                if (str[i + j] == ch)
-                    return (const void*)(str + i + j);
-            }
-        }
-    }
-    for (; i < count; i++)
-    {
-        if (str[i] == ch)
-            return (const char*)(str + i);
-    }
-    return nullptr;
-}
-#elif defined IMGUI_ENABLE_AVX_IMMEMCHR
-const void* ImMemchr(const void* buf, int val, size_t count)
-{
-    static const size_t SIMD_LENGTH = 32;
-
-    const char* str = (const char*)buf;
-    const char ch = (char)(val);
-    const size_t aligned_length = count - (count % SIMD_LENGTH);
-    __m256i target = _mm256_set1_epi8(ch);
-
-    size_t i = 0;
-    for (; i < aligned_length; i += SIMD_LENGTH)
-    {
-        __m256i chunk = _mm256_loadu_si256((const __m256i*)(str + i));
-        __m256i cmp_result = _mm256_cmpeq_epi8(chunk, target);
-
-        int cmp = _mm256_testz_si256(cmp_result, cmp_result);
-        if (cmp != 0)
+        if (mask != 0)
         {
             for (size_t j = 0; j < SIMD_LENGTH && i + j < aligned_length; ++j)
             {
@@ -2022,9 +1989,9 @@ const void* ImMemchr(const void* buf, int val, size_t count)
     for (; i < aligned_length; i += SIMD_LENGTH)
     {
         __m128i chunk = _mm_loadu_si128((const __m128i*)(str + i));
-        uint16_t cmp = _mm_cmpeq_epi8_mask(chunk, target);
+        int mask = _mm_movemask_epi8(_mm_cmpeq_epi8(chunk, target));
 
-        if (cmp != 0)
+        if (mask != 0)
         {
             for (size_t j = 0; j < SIMD_LENGTH && i + j < aligned_length; ++j)
             {

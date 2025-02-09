@@ -77,11 +77,10 @@ Index of this file:
 #define IMGUI_ENABLE_SSE4_2_CRC
 #endif
 
+// Only AVX2 supports integer and byte instructions for 256-bit registers. Implementation this on AVX1 is not possible.
 #if defined(IMGUI_ENABLE_AVX2)
 #define IMGUI_ENABLE_AVX2_IMMEMCHR
-#elif defined(IMGUI_ENABLE_AVX)
-#define IMGUI_ENABLE_AVX_IMMEMCHR
-#elif defined(IMGUI_ENABLE_SSE)
+#elif defined(IMGUI_ENABLE_AVX) || defined(IMGUI_ENABLE_SSE)
 #define IMGUI_ENABLE_SSE_IMMEMCHR
 #endif
 

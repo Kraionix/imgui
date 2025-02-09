@@ -61,14 +61,28 @@ Index of this file:
 #if (defined __SSE__ || defined __x86_64__ || defined _M_X64 || (defined(_M_IX86_FP) && (_M_IX86_FP >= 1))) && !defined(IMGUI_DISABLE_SSE)
 #define IMGUI_ENABLE_SSE
 #include <immintrin.h>
-#if (defined __AVX__ || defined __SSE4_2__)
+#if (defined __SSE4_2__)
 #define IMGUI_ENABLE_SSE4_2
 #include <nmmintrin.h>
+#endif
+#if (defined __AVX__)
+#define IMGUI_ENABLE_AVX
+#endif
+#if (defined __AVX2__)
+#define IMGUI_ENABLE_AVX2
 #endif
 #endif
 // Emscripten has partial SSE 4.2 support where _mm_crc32_u32 is not available. See https://emscripten.org/docs/porting/simd.html#id11 and #8213
 #if defined(IMGUI_ENABLE_SSE4_2) && !defined(IMGUI_USE_LEGACY_CRC32_ADLER) && !defined(__EMSCRIPTEN__)
 #define IMGUI_ENABLE_SSE4_2_CRC
+#endif
+
+#if defined(IMGUI_ENABLE_AVX2)
+#define IMGUI_ENABLE_AVX2_IMMEMCHR
+#elif defined(IMGUI_ENABLE_AVX)
+#define IMGUI_ENABLE_AVX_IMMEMCHR
+#elif defined(IMGUI_ENABLE_SSE)
+#define IMGUI_ENABLE_SSE_IMMEMCHR
 #endif
 
 // Visual Studio warnings

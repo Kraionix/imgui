@@ -1943,7 +1943,7 @@ ImVec2 ImTriangleClosestPoint(const ImVec2& a, const ImVec2& b, const ImVec2& c,
 // [SECTION] MISC HELPERS/UTILITIES (String, Format, Hash functions)
 //-----------------------------------------------------------------------------
 
-#if !(defined(IMGUI_ENABLE_SSE_IMMEMCHR) || defined(IMGUI_ENABLE_AVX_IMMEMCHR))
+#if !(defined(IMGUI_ENABLE_SSE_IMMEMCHR) || defined(IMGUI_ENABLE_AVX_IMMEMCHR) || defined(IMGUI_ENABLE_AVX2_IMMEMCHR))
 const void* ImMemchr(const void* buf, int val, size_t count)
 {
     return memchr(buf, val, count);
@@ -1985,6 +1985,41 @@ const void* ImMemchr(const void* buf, int val, size_t count)
 #endif // IMGUI_ENABLE_SSE_IMMEMCHR
 
 #ifdef IMGUI_ENABLE_AVX_IMMEMCHR
+const void* ImMemchr(const void* buf, int val, size_t count)
+{
+    static const size_t SIMD_LENGTH = 32;
+
+    const char* str = (const char*)buf;
+    const char ch = (char)(val);
+    const size_t aligned_length = count - (count % SIMD_LENGTH);
+    __m256i target = _mm256_set1_epi8(ch);
+
+    size_t i = 0;
+    for (; i < aligned_length; i += SIMD_LENGTH)
+    {
+        __m256i chunk = _mm256_loadu_si256((const __m256i*)(str + i));
+        __m256i cmp_result = _mm256_cmpeq_epi8(chunk, target);
+
+        int cmp = _mm256_testz_si256(cmp_result, cmp_result);
+        if (cmp != 0)
+        {
+            for (size_t j = 0; j < SIMD_LENGTH && i + j < aligned_length; ++j)
+            {
+                if (str[i + j] == ch)
+                    return (const void*)(str + i + j);
+            }
+        }
+    }
+    for (; i < count; i++)
+    {
+        if (str[i] == ch)
+            return (const char*)(str + i);
+    }
+    return nullptr;
+}
+#endif // IMGUI_ENABLE_AVX_IMMEMCHR
+
+#ifdef IMGUI_ENABLE_AVX2_IMMEMCHR
 const void* ImMemchr(const void* buf, int val, size_t count)
 {
     static const size_t SIMD_LENGTH = 32;

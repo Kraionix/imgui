@@ -1961,7 +1961,7 @@ const void* ImMemchr(const void* buf, int val, size_t count)
 
         if (mask != 0)
         {
-            for (size_t j = 0; j < SIMD_LENGTH && i + j < aligned_length; ++j)
+            for (size_t j = 0; j < SIMD_LENGTH; ++j)
             {
                 if (str[i + j] == ch)
                     return (const void*)(str + i + j);
@@ -1993,7 +1993,7 @@ const void* ImMemchr(const void* buf, int val, size_t count)
 
         if (mask != 0)
         {
-            for (size_t j = 0; j < SIMD_LENGTH && i + j < aligned_length; ++j)
+            for (size_t j = 0; j < SIMD_LENGTH; ++j)
             {
                 if (str[i + j] == ch)
                     return (const void*)(str + i + j);

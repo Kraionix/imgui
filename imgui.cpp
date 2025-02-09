@@ -1943,6 +1943,11 @@ ImVec2 ImTriangleClosestPoint(const ImVec2& a, const ImVec2& b, const ImVec2& c,
 // [SECTION] MISC HELPERS/UTILITIES (String, Format, Hash functions)
 //-----------------------------------------------------------------------------
 
+const void* ImMemchr(const void* buf, int val, size_t count)
+{
+    return memchr(buf, val, count);
+}
+
 // Consider using _stricmp/_strnicmp under Windows or strcasecmp/strncasecmp. We don't actually use either ImStricmp/ImStrnicmp in the codebase any more.
 int ImStricmp(const char* str1, const char* str2)
 {
@@ -1990,7 +1995,7 @@ char* ImStrdupcpy(char* dst, size_t* p_dst_size, const char* src)
 
 const char* ImStrchrRange(const char* str, const char* str_end, char c)
 {
-    const char* p = (const char*)memchr(str, (int)c, str_end - str);
+    const char* p = (const char*)ImMemchr(str, (int)c, str_end - str);
     return p;
 }
 
@@ -2005,7 +2010,7 @@ int ImStrlenW(const ImWchar* str)
 // Find end-of-line. Return pointer will point to either first \n, either str_end.
 const char* ImStreolRange(const char* str, const char* str_end)
 {
-    const char* p = (const char*)memchr(str, '\n', str_end - str);
+    const char* p = (const char*)ImMemchr(str, '\n', str_end - str);
     return p ? p : str_end;
 }
 
@@ -2554,7 +2559,7 @@ int ImTextCountLines(const char* in_text, const char* in_text_end)
     int count = 0;
     while (in_text < in_text_end)
     {
-        const char* line_end = (const char*)memchr(in_text, '\n', in_text_end - in_text);
+        const char* line_end = (const char*)ImMemchr(in_text, '\n', in_text_end - in_text);
         in_text = line_end ? line_end + 1 : in_text_end;
         count++;
     }
@@ -2962,7 +2967,7 @@ void ImGuiTextIndex::append(const char* base, int old_size, int new_size)
     if (EndOffset == 0 || base[EndOffset - 1] == '\n')
         LineOffsets.push_back(EndOffset);
     const char* base_end = base + new_size;
-    for (const char* p = base + old_size; (p = (const char*)memchr(p, '\n', base_end - p)) != 0; )
+    for (const char* p = base + old_size; (p = (const char*)ImMemchr(p, '\n', base_end - p)) != 0; )
         if (++p < base_end) // Don't push a trailing offset on last \n
             LineOffsets.push_back((int)(intptr_t)(p - base));
     EndOffset = ImMax(EndOffset, new_size);

@@ -1966,24 +1966,25 @@ const void* ImMemchr(const void* buf, int val, size_t count)
         {
             for (size_t j = 0; j < SIMD_LENGTH; j += 8)
             {
-                if (str[i + j] == ch)
+                if (mask & (1 << j))
                     return (const void*)(str + i + j);
-                if (str[i + j + 1] == ch)
+                if (mask & (1 << (j + 1)))
                     return (const void*)(str + i + j + 1);
-                if (str[i + j + 2] == ch)
+                if (mask & (1 << (j + 2)))
                     return (const void*)(str + i + j + 2);
-                if (str[i + j + 3] == ch)
+                if (mask & (1 << (j + 3)))
                     return (const void*)(str + i + j + 3);
-                if (str[i + j + 4] == ch)
+                if (mask & (1 << (j + 4)))
                     return (const void*)(str + i + j + 4);
-                if (str[i + j + 5] == ch)
+                if (mask & (1 << (j + 5)))
                     return (const void*)(str + i + j + 5);
-                if (str[i + j + 6] == ch)
+                if (mask & (1 << (j + 6)))
                     return (const void*)(str + i + j + 6);
-                if (str[i + j + 7] == ch)
+                if (mask & (1 << (j + 7)))
                     return (const void*)(str + i + j + 7);
             }
         }
+
     }
     for (; i < count; i++)
     {
@@ -2012,13 +2013,13 @@ const void* ImMemchr(const void* buf, int val, size_t count)
         {
             for (size_t j = 0; j < SIMD_LENGTH; j += 4)
             {
-                if (str[i + j] == ch)
+                if (mask & (1 << j))
                     return (const void*)(str + i + j);
-                if (str[i + j + 1] == ch)
+                if (mask & (1 << (j + 1)))
                     return (const void*)(str + i + j + 1);
-                if (str[i + j + 2] == ch)
+                if (mask & (1 << (j + 2)))
                     return (const void*)(str + i + j + 2);
-                if (str[i + j + 3] == ch)
+                if (mask & (1 << (j + 3)))
                     return (const void*)(str + i + j + 3);
             }
         }

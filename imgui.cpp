@@ -1964,10 +1964,24 @@ const void* ImMemchr(const void* buf, int val, size_t count)
 
         if (mask != 0)
         {
-            for (size_t j = 0; j < SIMD_LENGTH; ++j)
+            for (size_t j = 0; j < SIMD_LENGTH; j += 8)
             {
                 if (str[i + j] == ch)
                     return (const void*)(str + i + j);
+                if (str[i + j + 1] == ch)
+                    return (const void*)(str + i + j + 1);
+                if (str[i + j + 2] == ch)
+                    return (const void*)(str + i + j + 2);
+                if (str[i + j + 3] == ch)
+                    return (const void*)(str + i + j + 3);
+                if (str[i + j + 4] == ch)
+                    return (const void*)(str + i + j + 4);
+                if (str[i + j + 5] == ch)
+                    return (const void*)(str + i + j + 5);
+                if (str[i + j + 6] == ch)
+                    return (const void*)(str + i + j + 6);
+                if (str[i + j + 7] == ch)
+                    return (const void*)(str + i + j + 7);
             }
         }
     }
@@ -1996,10 +2010,16 @@ const void* ImMemchr(const void* buf, int val, size_t count)
 
         if (mask != 0)
         {
-            for (size_t j = 0; j < SIMD_LENGTH; ++j)
+            for (size_t j = 0; j < SIMD_LENGTH; j += 4)
             {
                 if (str[i + j] == ch)
                     return (const void*)(str + i + j);
+                if (str[i + j + 1] == ch)
+                    return (const void*)(str + i + j + 1);
+                if (str[i + j + 2] == ch)
+                    return (const void*)(str + i + j + 2);
+                if (str[i + j + 3] == ch)
+                    return (const void*)(str + i + j + 3);
             }
         }
     }

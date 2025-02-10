@@ -1949,7 +1949,7 @@ ImVec2 ImTriangleClosestPoint(const ImVec2& a, const ImVec2& b, const ImVec2& c,
 #if defined IMGUI_ENABLE_AVX2_IMMEMCHR
 const void* ImMemchr(const void* buf, int val, size_t count)
 {
-    static const size_t SIMD_LENGTH = 32;
+    const size_t SIMD_LENGTH = 32;
 
     const unsigned char* str = (const unsigned char*)buf;
     const unsigned char ch = (const unsigned char)(val);
@@ -1995,7 +1995,7 @@ const void* ImMemchr(const void* buf, int val, size_t count)
 #elif defined IMGUI_ENABLE_SSE_IMMEMCHR
 const void* ImMemchr(const void* buf, int val, size_t count)
 {
-    static const size_t SIMD_LENGTH = 16;
+     const size_t SIMD_LENGTH = 16;
 
     const unsigned char* str = (const unsigned char*)buf;
     const unsigned char ch = (const unsigned char)(val);

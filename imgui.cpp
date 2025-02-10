@@ -1988,7 +1988,7 @@ const void* ImMemchr(const void* buf, int val, size_t count)
     for (; i < count; i++)
     {
         if (str[i] == ch)
-            return (const char*)(str + i);
+            return (const void*)(str + i);
     }
     return nullptr;
 }

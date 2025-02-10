@@ -1951,8 +1951,8 @@ const void* ImMemchr(const void* buf, int val, size_t count)
 {
     static const size_t SIMD_LENGTH = 32;
 
-    const char* str = (const char*)buf;
-    const char ch = (char)(val);
+    const unsigned char* str = (const unsigned char*)buf;
+    const unsigned char ch = (const unsigned char)(val);
     const size_t aligned_length = count - (count % SIMD_LENGTH);
     __m256i target = _mm256_set1_epi8(ch);
 
@@ -1997,8 +1997,8 @@ const void* ImMemchr(const void* buf, int val, size_t count)
 {
     static const size_t SIMD_LENGTH = 16;
 
-    const char* str = (const char*)buf;
-    const char ch = (char)(val);
+    const unsigned char* str = (const unsigned char*)buf;
+    const unsigned char ch = (const unsigned char)(val);
     const size_t aligned_length = count - (count % SIMD_LENGTH);
     __m128i target = _mm_set1_epi8(ch);
 

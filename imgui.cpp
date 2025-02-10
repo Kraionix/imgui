@@ -1943,9 +1943,15 @@ ImVec2 ImTriangleClosestPoint(const ImVec2& a, const ImVec2& b, const ImVec2& c,
 // [SECTION] MISC HELPERS/UTILITIES (String, Format, Hash functions)
 //-----------------------------------------------------------------------------
 
-// In ImMemchr(), a loop is used instead of using _tzcnt_u32() or _lzcnt_u32() to find the value when the mask is not zero,
-// because, based on tests, these functions are slower.
-// The performance drops by 30 % for the SSE implementation and by 70 % for the AVX2 implementation.
+// For loading chunk in SSE and AVX2 implementations, the lddqu intrinsic is used
+// instead of loadu to optimize loading from unaligned memory on older architectures.
+// In the mask check, a loop is used instead of _tzcnt_u32(), as tests show that using 
+// _tzcnt_u32() reduces performance by 30% in SSE and by 70% in AVX2 implementations.
+// In the mask check, (mask & (1 << j)) is used instead of (str[i + j] == ch) 
+// because it is more efficient.
+// In the mask check, the loop is explicitly unrolled by 4 in SSE and by 8 in AVX2 implementations, 
+// as this allows taking advantage of superscalar execution, increasing performance by 10%
+// in SSE and AVX2 implementations.
 #if defined IMGUI_ENABLE_AVX2_IMMEMCHR
 const void* ImMemchr(const void* buf, int val, size_t count)
 {

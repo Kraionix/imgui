@@ -1943,98 +1943,84 @@ ImVec2 ImTriangleClosestPoint(const ImVec2& a, const ImVec2& b, const ImVec2& c,
 // [SECTION] MISC HELPERS/UTILITIES (String, Format, Hash functions)
 //-----------------------------------------------------------------------------
 
-// For loading chunk in SSE and AVX2 implementations, the lddqu intrinsic is used
-// instead of loadu to optimize loading from unaligned memory on older architectures.
-// In the mask check, a loop is used instead of _tzcnt_u32(), as tests show that using 
-// _tzcnt_u32() reduces performance by 30% in SSE and by 70% in AVX2 implementations.
-// In the mask check, (mask & (1 << j)) is used instead of (str[i + j] == ch) 
-// because it is more efficient.
-// In the mask check, the loop is explicitly unrolled by 4 in SSE and by 8 in AVX2 implementations, 
-// as this allows taking advantage of superscalar execution, increasing performance by 10%
-// in SSE and AVX2 implementations.
 #if defined IMGUI_ENABLE_AVX2_IMMEMCHR
 const void* ImMemchr(const void* buf, int val, size_t count)
 {
     const size_t SIMD_LENGTH = 32;
 
-    const unsigned char* str = (const unsigned char*)buf;
+    const unsigned char* ptr = (const unsigned char*)buf;
+    const unsigned char* end = ptr + count;
     const unsigned char ch = (const unsigned char)(val);
-    const size_t aligned_length = count - (count % SIMD_LENGTH);
-    __m256i target = _mm256_set1_epi8(ch);
 
-    size_t i = 0;
-    for (; i < aligned_length; i += SIMD_LENGTH)
+    const __m256i target = _mm256_set1_epi8(ch);
+
+    for (; ptr <= end - SIMD_LENGTH; ptr += SIMD_LENGTH)
     {
-        __m256i chunk = _mm256_lddqu_si256((const __m256i*)(str + i));
+        __m256i chunk = _mm256_lddqu_si256((const __m256i*)(ptr));
         int mask = _mm256_movemask_epi8(_mm256_cmpeq_epi8(chunk, target));
 
-        if (mask != 0)
-        {
-            for (size_t j = 0; j < SIMD_LENGTH; j += 8)
-            {
-                if (mask & (1 << j))
-                    return (const void*)(str + i + j);
-                if (mask & (1 << (j + 1)))
-                    return (const void*)(str + i + j + 1);
-                if (mask & (1 << (j + 2)))
-                    return (const void*)(str + i + j + 2);
-                if (mask & (1 << (j + 3)))
-                    return (const void*)(str + i + j + 3);
-                if (mask & (1 << (j + 4)))
-                    return (const void*)(str + i + j + 4);
-                if (mask & (1 << (j + 5)))
-                    return (const void*)(str + i + j + 5);
-                if (mask & (1 << (j + 6)))
-                    return (const void*)(str + i + j + 6);
-                if (mask & (1 << (j + 7)))
-                    return (const void*)(str + i + j + 7);
-            }
-        }
+        if (mask)
+            return (const void*)(ptr + _tzcnt_u32(mask));
 
+        size_t prefetch_offset = 0;
+        if (ptr + 1024 < end)
+            prefetch_offset = 1024;
+        else if (ptr + 512 < end)
+            prefetch_offset = 512;
+        else if (ptr + 256 < end)
+            prefetch_offset = 256;
+        else if (ptr + 128 < end)
+            prefetch_offset = 128;
+
+        _mm_prefetch((const char*)(ptr + prefetch_offset), _MM_HINT_T0);
     }
-    for (; i < count; i++)
+
+    for (; ptr < end; ptr++)
     {
-        if (str[i] == ch)
-            return (const void*)(str + i);
+        if (*ptr == ch)
+            return (const void*)(ptr);
     }
+
     return nullptr;
 }
 #elif defined IMGUI_ENABLE_SSE_IMMEMCHR
 const void* ImMemchr(const void* buf, int val, size_t count)
 {
-     const size_t SIMD_LENGTH = 16;
+    const size_t SIMD_LENGTH = 16;
 
-    const unsigned char* str = (const unsigned char*)buf;
+    const unsigned char* ptr = (const unsigned char*)buf;
+    const unsigned char* end = ptr + count;
     const unsigned char ch = (const unsigned char)(val);
-    const size_t aligned_length = count - (count % SIMD_LENGTH);
-    __m128i target = _mm_set1_epi8(ch);
 
-    size_t i = 0;
-    for (; i < aligned_length; i += SIMD_LENGTH)
+    const __m128i target = _mm_set1_epi8(ch);
+
+    for (; ptr <= end - SIMD_LENGTH; ptr += SIMD_LENGTH)
     {
-        __m128i chunk = _mm_lddqu_si128((const __m128i*)(str + i));
+        __m128i chunk = _mm_lddqu_si128((const __m128i*)(ptr));
         int mask = _mm_movemask_epi8(_mm_cmpeq_epi8(chunk, target));
 
-        if (mask != 0)
-        {
-            for (size_t j = 0; j < SIMD_LENGTH; j += 4)
-            {
-                if (mask & (1 << j))
-                    return (const void*)(str + i + j);
-                if (mask & (1 << (j + 1)))
-                    return (const void*)(str + i + j + 1);
-                if (mask & (1 << (j + 2)))
-                    return (const void*)(str + i + j + 2);
-                if (mask & (1 << (j + 3)))
-                    return (const void*)(str + i + j + 3);
-            }
-        }
+        if (mask)
+            return (const void*)(ptr + _tzcnt_u32(mask));
+
+        size_t prefetch_offset = 0;
+        if (ptr + 1024 < end)
+            prefetch_offset = 1024;
+        else if (ptr + 512 < end)
+            prefetch_offset = 512;
+        else if (ptr + 256 < end)
+            prefetch_offset = 256;
+        else if (ptr + 128 < end)
+            prefetch_offset = 128;
+
+        _mm_prefetch((const char*)(ptr + prefetch_offset), _MM_HINT_T0);
     }
-    for (; i < count; i++)
+
+    for (; ptr < end; ptr++)
     {
-        if (str[i] == ch)
-            return (const void*)(str + i);
+        if (*ptr == ch)
+            return (const void*)(ptr);
     }
+
     return nullptr;
 }
 #else

@@ -1975,17 +1975,8 @@ const void* ImMemchr(const void* buf, int val, size_t count)
         if (mask)
             return (const void*)(ptr + _tzcnt_u32(mask));
 
-        size_t prefetch_offset = 0;
-        if (ptr + 1024 < end)
-            prefetch_offset = 1024;
-        else if (ptr + 512 < end)
-            prefetch_offset = 512;
-        else if (ptr + 256 < end)
-            prefetch_offset = 256;
-        else if (ptr + 128 < end)
-            prefetch_offset = 128;
-
-        _mm_prefetch((const char*)(ptr + prefetch_offset), _MM_HINT_T0);
+        if (ptr <= end - 1024)
+            _mm_prefetch((const char*)(ptr + 1024), _MM_HINT_T0);
     }
 
     for (; ptr < end; ptr++)
@@ -2028,17 +2019,8 @@ const void* ImMemchr(const void* buf, int val, size_t count)
         if (mask)
             return (const void*)(ptr + _tzcnt_u32(mask));
 
-        size_t prefetch_offset = 0;
-        if (ptr + 1024 < end)
-            prefetch_offset = 1024;
-        else if (ptr + 512 < end)
-            prefetch_offset = 512;
-        else if (ptr + 256 < end)
-            prefetch_offset = 256;
-        else if (ptr + 128 < end)
-            prefetch_offset = 128;
-
-        _mm_prefetch((const char*)(ptr + prefetch_offset), _MM_HINT_T0);
+        if (ptr <= end - 1024)
+            _mm_prefetch((const char*)(ptr + 1024), _MM_HINT_T0);
     }
 
     for (; ptr < end; ptr++)

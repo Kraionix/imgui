@@ -1956,7 +1956,7 @@ const void* ImMemchr(const void* buf, int val, size_t count)
 
     const __m256i target = _mm256_set1_epi8(ch);
 
-    if (count >= SIMD_LENGTH && (uintptr_t)ptr & SIMD_ALIGN)
+    if (ptr <= align_end && (uintptr_t)ptr & SIMD_ALIGN)
     {
         __m256i chunk = _mm256_lddqu_si256((const __m256i*)ptr);
         int mask = _mm256_movemask_epi8(_mm256_cmpeq_epi8(chunk, target));
@@ -2000,7 +2000,7 @@ const void* ImMemchr(const void* buf, int val, size_t count)
 
     const __m128i target = _mm_set1_epi8(ch);
 
-    if (count >= SIMD_LENGTH && (uintptr_t)ptr & SIMD_ALIGN)
+    if (ptr <= align_end && (uintptr_t)ptr & SIMD_ALIGN)
     {
         __m128i chunk = _mm_lddqu_si128((const __m128i*)ptr);
         int mask = _mm_movemask_epi8(_mm_cmpeq_epi8(chunk, target));

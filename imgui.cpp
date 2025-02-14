@@ -1947,7 +1947,7 @@ ImVec2 ImTriangleClosestPoint(const ImVec2& a, const ImVec2& b, const ImVec2& c,
 const void* ImMemchr(const void* buf, int val, size_t count)
 {
     const size_t SIMD_LENGTH = 32;
-    const size_t SIMD_ALIGN = SIMD_LENGTH - 1;
+    const size_t SIMD_LENGTH_MASK = SIMD_LENGTH - 1;
 
     const unsigned char* ptr = (const unsigned char*)buf;
     const unsigned char* end = ptr + count;
@@ -1956,7 +1956,7 @@ const void* ImMemchr(const void* buf, int val, size_t count)
 
     const __m256i target = _mm256_set1_epi8(ch);
 
-    if (ptr <= align_end && (uintptr_t)ptr & SIMD_ALIGN)
+    if (ptr <= align_end && (uintptr_t)ptr & SIMD_LENGTH_MASK)
     {
         __m256i chunk = _mm256_lddqu_si256((const __m256i*)ptr);
         int mask = _mm256_movemask_epi8(_mm256_cmpeq_epi8(chunk, target));
@@ -1964,7 +1964,7 @@ const void* ImMemchr(const void* buf, int val, size_t count)
         if (mask)
             return (const void*)(ptr + _tzcnt_u32(mask));
 
-        ptr = (const unsigned char*)(((uintptr_t)ptr + SIMD_ALIGN) & ~SIMD_ALIGN);
+        ptr = (const unsigned char*)(((uintptr_t)ptr + SIMD_LENGTH_MASK) & ~SIMD_LENGTH_MASK);
     }
 
     for (; ptr <= align_end; ptr += SIMD_LENGTH)
@@ -1991,7 +1991,7 @@ const void* ImMemchr(const void* buf, int val, size_t count)
 const void* ImMemchr(const void* buf, int val, size_t count)
 {
     const size_t SIMD_LENGTH = 16;
-    const size_t SIMD_ALIGN = SIMD_LENGTH - 1;
+    const size_t SIMD_LENGTH_MASK = SIMD_LENGTH - 1;
 
     const unsigned char* ptr = (const unsigned char*)buf;
     const unsigned char* end = ptr + count;
@@ -2000,7 +2000,7 @@ const void* ImMemchr(const void* buf, int val, size_t count)
 
     const __m128i target = _mm_set1_epi8(ch);
 
-    if (ptr <= align_end && (uintptr_t)ptr & SIMD_ALIGN)
+    if (ptr <= align_end && (uintptr_t)ptr & SIMD_LENGTH_MASK)
     {
         __m128i chunk = _mm_lddqu_si128((const __m128i*)ptr);
         int mask = _mm_movemask_epi8(_mm_cmpeq_epi8(chunk, target));
@@ -2008,7 +2008,7 @@ const void* ImMemchr(const void* buf, int val, size_t count)
         if (mask)
             return (const void*)(ptr + _tzcnt_u32(mask));
 
-        ptr = (const unsigned char*)(((uintptr_t)ptr + SIMD_ALIGN) & ~SIMD_ALIGN);
+        ptr = (const unsigned char*)(((uintptr_t)ptr + SIMD_LENGTH_MASK) & ~SIMD_LENGTH_MASK);
     }
 
     for (; ptr <= align_end; ptr += SIMD_LENGTH)

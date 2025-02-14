@@ -57,21 +57,31 @@ Index of this file:
 #include <math.h>       // sqrtf, fabsf, fmodf, powf, floorf, ceilf, cosf, sinf
 #include <limits.h>     // INT_MIN, INT_MAX
 
-// Enable SSE intrinsics if available
-#if (defined __SSE__ || defined __x86_64__ || defined _M_X64 || (defined(_M_IX86_FP) && (_M_IX86_FP >= 1))) && !defined(IMGUI_DISABLE_SSE)
-#define IMGUI_ENABLE_SSE
-#include <immintrin.h>
-#if (defined __SSE4_2__)
-#define IMGUI_ENABLE_SSE4_2
-#include <nmmintrin.h>
+// Include compiler-specific intrinsics header 
+#if !defined(IMGUI_DISABLE_SIMD)
+#if defined(_MSC_VER)
+#include <intrin.h>
+#elif defined(__GNUC__) || defined(__clang__)
+#include <x86intrin.h>
 #endif
-#if (defined __AVX__)
+#endif
+
+// Enable SIMD x86-64 intrinsics if available
+#if (defined __x86_64__ || defined _M_X64) && !defined(IMGUI_DISABLE_SIMD)
+#if (defined __SSE__  || (defined(_M_IX86_FP) && (_M_IX86_FP >= 1))) && !defined(IMGUI_DISABLE_SSE)
+#define IMGUI_ENABLE_SSE
+#endif
+#if defined (__SSE4_2__) && !defined(IMGUI_DISABLE_SSE4_2)
+#define IMGUI_ENABLE_SSE4_2
+#endif
+#if (defined __AVX__) && !defined(IMGUI_DISABLE_AVX)
 #define IMGUI_ENABLE_AVX
 #endif
-#if (defined __AVX2__)
+#if (defined __AVX2__) && !defined(IMGUI_DISABLE_AVX2)
 #define IMGUI_ENABLE_AVX2
 #endif
 #endif
+
 // Emscripten has partial SSE 4.2 support where _mm_crc32_u32 is not available. See https://emscripten.org/docs/porting/simd.html#id11 and #8213
 #if defined(IMGUI_ENABLE_SSE4_2) && !defined(IMGUI_USE_LEGACY_CRC32_ADLER) && !defined(__EMSCRIPTEN__)
 #define IMGUI_ENABLE_SSE4_2_CRC

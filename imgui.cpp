@@ -1964,7 +1964,7 @@ const void* ImMemchr(const void* buf, int val, size_t count)
         if (mask)
             return (const void*)(ptr + _tzcnt_u32(mask));
 
-        ptr = (const unsigned char*)(((uintptr_t)ptr + SIMD_LENGTH_MASK) & ~SIMD_LENGTH_MASK);
+        ptr = (const unsigned char*)_andn_u64(SIMD_LENGTH_MASK, (uintptr_t)ptr + SIMD_LENGTH_MASK);
     }
 
     for (; ptr <= align_end; ptr += SIMD_LENGTH)

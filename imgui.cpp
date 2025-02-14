@@ -1954,29 +1954,32 @@ const void* ImMemchr(const void* buf, int val, size_t count)
     const unsigned char* align_end = end - SIMD_LENGTH;
     const unsigned char ch = (const unsigned char)val;
 
-    const __m256i target = _mm256_set1_epi8(ch);
-
-    if (ptr <= align_end && (uintptr_t)ptr & SIMD_LENGTH_MASK)
+    if (ptr <= align_end)
     {
-        __m256i chunk = _mm256_lddqu_si256((const __m256i*)ptr);
-        int mask = _mm256_movemask_epi8(_mm256_cmpeq_epi8(chunk, target));
+        const __m256i target = _mm256_set1_epi8(ch);
 
-        if (mask)
-            return (const void*)(ptr + _tzcnt_u32(mask));
+        if ((uintptr_t)ptr & SIMD_LENGTH_MASK)
+        {
+            __m256i chunk = _mm256_lddqu_si256((const __m256i*)ptr);
+            int mask = _mm256_movemask_epi8(_mm256_cmpeq_epi8(chunk, target));
 
-        ptr = (const unsigned char*)_andn_u64(SIMD_LENGTH_MASK, (uintptr_t)ptr + SIMD_LENGTH_MASK);
-    }
+            if (mask)
+                return (const void*)(ptr + _tzcnt_u32(mask));
 
-    for (; ptr <= align_end; ptr += SIMD_LENGTH)
-    {
-        __m256i chunk = _mm256_load_si256((const __m256i*)ptr);
-        int mask = _mm256_movemask_epi8(_mm256_cmpeq_epi8(chunk, target));
+            ptr = (const unsigned char*)_andn_u64(SIMD_LENGTH_MASK, (uintptr_t)ptr + SIMD_LENGTH_MASK);
+        }
 
-        if (mask)
-            return (const void*)(ptr + _tzcnt_u32(mask));
+        for (; ptr <= align_end; ptr += SIMD_LENGTH)
+        {
+            __m256i chunk = _mm256_load_si256((const __m256i*)ptr);
+            int mask = _mm256_movemask_epi8(_mm256_cmpeq_epi8(chunk, target));
 
-        if (ptr <= end - 1024)
-            _mm_prefetch((const char*)(ptr + 1024), _MM_HINT_T0);
+            if (mask)
+                return (const void*)(ptr + _tzcnt_u32(mask));
+
+            if (ptr <= end - 1024)
+                _mm_prefetch((const char*)(ptr + 1024), _MM_HINT_T0);
+        }
     }
 
     for (; ptr < end; ptr++)
@@ -1998,29 +2001,32 @@ const void* ImMemchr(const void* buf, int val, size_t count)
     const unsigned char* align_end = end - SIMD_LENGTH;
     const unsigned char ch = (const unsigned char)val;
 
-    const __m128i target = _mm_set1_epi8(ch);
-
-    if (ptr <= align_end && (uintptr_t)ptr & SIMD_LENGTH_MASK)
+    if (ptr <= align_end)
     {
-        __m128i chunk = _mm_lddqu_si128((const __m128i*)ptr);
-        int mask = _mm_movemask_epi8(_mm_cmpeq_epi8(chunk, target));
+        const __m128i target = _mm_set1_epi8(ch);
 
-        if (mask)
-            return (const void*)(ptr + _tzcnt_u32(mask));
+        if ((uintptr_t)ptr & SIMD_LENGTH_MASK)
+        {
+            __m128i chunk = _mm_lddqu_si128((const __m128i*)ptr);
+            int mask = _mm_movemask_epi8(_mm_cmpeq_epi8(chunk, target));
 
-        ptr = (const unsigned char*)(((uintptr_t)ptr + SIMD_LENGTH_MASK) & ~SIMD_LENGTH_MASK);
-    }
+            if (mask)
+                return (const void*)(ptr + _tzcnt_u32(mask));
 
-    for (; ptr <= align_end; ptr += SIMD_LENGTH)
-    {
-        __m128i chunk = _mm_load_si128((const __m128i*)ptr);
-        int mask = _mm_movemask_epi8(_mm_cmpeq_epi8(chunk, target));
+            ptr = (const unsigned char*)(((uintptr_t)ptr + SIMD_LENGTH_MASK) & ~SIMD_LENGTH_MASK);
+        }
 
-        if (mask)
-            return (const void*)(ptr + _tzcnt_u32(mask));
+        for (; ptr <= align_end; ptr += SIMD_LENGTH)
+        {
+            __m128i chunk = _mm_load_si128((const __m128i*)ptr);
+            int mask = _mm_movemask_epi8(_mm_cmpeq_epi8(chunk, target));
 
-        if (ptr <= end - 1024)
-            _mm_prefetch((const char*)(ptr + 1024), _MM_HINT_T0);
+            if (mask)
+                return (const void*)(ptr + _tzcnt_u32(mask));
+
+            if (ptr <= end - 1024)
+                _mm_prefetch((const char*)(ptr + 1024), _MM_HINT_T0);
+        }
     }
 
     for (; ptr < end; ptr++)
